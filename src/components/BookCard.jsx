@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 export default function BookCard({ book, onDelete }) {
-  const readingProgress = book.pagesRead ? Math.round((book.pagesRead / book.totalPages) * 100) : 0;
+  const readingProgress = book.pages_read ? Math.round((book.pages_read / book.total_pages) * 100) : 0;
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col h-full">
@@ -18,7 +18,7 @@ export default function BookCard({ book, onDelete }) {
         
         <div className="mb-3">
           <p className="text-xs text-gray-500 mb-1">
-            Progress: {book.pagesRead || 0} / {book.totalPages} pages
+            Progress: {book.pages_read || 0} / {book.total_pages} pages
           </p>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
