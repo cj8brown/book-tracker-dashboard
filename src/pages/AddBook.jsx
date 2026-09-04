@@ -16,6 +16,7 @@ export default function AddBook() {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,12 +44,13 @@ export default function AddBook() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      addBook({
+      setIsSubmitting(true);
+      const result = await addBook({
         title: formData.title,
         author: formData.author,
         totalPages: parseInt(formData.totalPages),
@@ -58,7 +60,13 @@ export default function AddBook() {
         genre: formData.genre,
         notes: formData.notes,
       });
-      navigate('/');
+      setIsSubmitting(false);
+      
+      if (result) {
+        navigate('/');
+      } else {
+        setErrors({ submit: 'Failed to add book. Please try again.' });
+      }
     } else {
       setErrors(newErrors);
     }
@@ -70,6 +78,12 @@ export default function AddBook() {
         <h1 className="text-3xl font-bold mb-8 text-gray-900">Add New Book</h1>
         
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 sm:p-8">
+          {errors.submit && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {errors.submit}
+            </div>
+          )}
+
           {/* Title */}
           <div className="mb-6">
             <label className="block text-gray-700 font-semibold mb-2">
@@ -217,14 +231,16 @@ export default function AddBook() {
           <div className="flex gap-4">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+              disabled={isSubmitting}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition-colors"
             >
-              Add Book
+              {isSubmitting ? 'Adding...' : 'Add Book'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 rounded-lg transition-colors"
+              disabled={isSubmitting}
+              className="flex-1 bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-800 font-semibold py-3 rounded-lg transition-colors"
             >
               Cancel
             </button>

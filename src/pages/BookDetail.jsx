@@ -8,30 +8,52 @@ export default function BookDetail() {
   const [book, setBook] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const foundBook = getBookById(id);
+    loadBook();
+  }, [id]);
+
+  const loadBook = async () => {
+    setLoading(true);
+    const foundBook = await getBookById(id);
     if (foundBook) {
       setBook(foundBook);
       setEditData(foundBook);
     }
-  }, [id]);
+    setLoading(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditData(prev => ({
       ...prev,
-      [name]: name === 'rating' || name === 'pagesRead' || name === 'totalPages' 
+      [name]: name === 'rating' || name === 'pages_read' || name === 'total_pages' 
         ? (value ? parseInt(value) : '') 
         : value
     }));
   };
 
-  const handleSave = () => {
-    const updated = updateBook(id, editData);
-    setBook(updated);
-    setIsEditing(false);
+  const handleSave = async () => {
+    setIsSaving(true);
+    const updated = await updateBook(id, editData);
+    setIsSaving(false);
+    if (updated) {
+      setBook(updated);
+      setIsEditing(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading book...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!book) {
     return (
@@ -46,7 +68,7 @@ export default function BookDetail() {
     );
   }
 
-  const readingProgress = book.pagesRead ? Math.round((book.pagesRead / book.totalPages) * 100) : 0;
+  const readingProgress = book.pages_read ? Math.round((book.pages_read / book.total_pages) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -78,7 +100,7 @@ export default function BookDetail() {
                   {!isEditing ? (
                     <div>
                       <p className="text-gray-600 mb-3">
-                        {book.pagesRead} / {book.totalPages} pages
+                        {book.pages_read} / {book.total_pages} pages
                       </p>
                       <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                         <div 
@@ -94,8 +116,8 @@ export default function BookDetail() {
                         <label className="block text-gray-700 font-semibold mb-2">Pages Read</label>
                         <input
                           type="number"
-                          name="pagesRead"
-                          value={editData.pagesRead}
+                          name="pages_read"
+                          value={editData.pages_read}
                           onChange={handleChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
@@ -104,8 +126,8 @@ export default function BookDetail() {
                         <label className="block text-gray-700 font-semibold mb-2">Total Pages</label>
                         <input
                           type="number"
-                          name="totalPages"
-                          value={editData.totalPages}
+                          name="total_pages"
+                          value={editData.total_pages}
                           onChange={handleChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
@@ -202,16 +224,18 @@ export default function BookDetail() {
                 <>
                   <button
                     onClick={handleSave}
-                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                    disabled={isSaving}
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                   >
-                    Save Changes
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                   <button
                     onClick={() => {
                       setIsEditing(false);
                       setEditData(book);
                     }}
-                    className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                    disabled={isSaving}
+                    className="bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>

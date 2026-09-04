@@ -6,20 +6,25 @@ import { getBooks, deleteBook } from '../utils/storage';
 export default function Dashboard() {
   const [books, setBooks] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadBooks();
   }, []);
 
-  const loadBooks = () => {
-    const allBooks = getBooks();
+  const loadBooks = async () => {
+    setLoading(true);
+    const allBooks = await getBooks();
     setBooks(allBooks);
+    setLoading(false);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this book?')) {
-      deleteBook(id);
-      loadBooks();
+      const success = await deleteBook(id);
+      if (success) {
+        await loadBooks();
+      }
     }
   };
 
@@ -34,6 +39,16 @@ export default function Dashboard() {
     completed: books.filter(b => b.status === 'Completed').length,
     toRead: books.filter(b => b.status === 'To Read').length,
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 text-lg">Loading your books...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

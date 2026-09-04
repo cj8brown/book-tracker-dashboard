@@ -3,18 +3,26 @@ import { getBooks } from '../utils/storage';
 
 export default function Statistics() {
   const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setBooks(getBooks());
+    loadBooks();
   }, []);
+
+  const loadBooks = async () => {
+    setLoading(true);
+    const allBooks = await getBooks();
+    setBooks(allBooks);
+    setLoading(false);
+  };
 
   const stats = {
     total: books.length,
     reading: books.filter(b => b.status === 'Reading').length,
     completed: books.filter(b => b.status === 'Completed').length,
     toRead: books.filter(b => b.status === 'To Read').length,
-    totalPages: books.reduce((sum, b) => sum + (b.totalPages || 0), 0),
-    pagesRead: books.reduce((sum, b) => sum + (b.pagesRead || 0), 0),
+    totalPages: books.reduce((sum, b) => sum + (b.total_pages || 0), 0),
+    pagesRead: books.reduce((sum, b) => sum + (b.pages_read || 0), 0),
     avgRating: books.filter(b => b.rating).length > 0 
       ? (books.reduce((sum, b) => sum + (b.rating || 0), 0) / books.filter(b => b.rating).length).toFixed(1)
       : 'N/A',
@@ -31,6 +39,16 @@ export default function Statistics() {
     .filter(b => b.rating)
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 5);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading statistics...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
